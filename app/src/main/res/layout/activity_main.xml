@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <TextView
+        android:paddingTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:textSize="20sp"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:focusable="true"
+        android:scrollbarAlwaysDrawHorizontalTrack="true"
+        android:focusableInTouchMode="true"
+        android:id="@+id/musicText"
+        android:ellipsize="marquee"
+        android:text="山外小楼夜听雨-任然    山外小楼夜听雨-任然    山外小楼夜听雨-任然    山外小楼夜听雨-任然    山外小楼夜听雨-任然    山外小楼夜听雨-任然"
+        android:singleLine="true"
+        />
+    <ImageView
+        android:paddingBottom="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="4"
+        android:src="@drawable/music1"
+        android:id="@+id/imageMain"
+
+
+
+        />
+    <!-- android:paddingLeft="20dp"
+    android:paddingRight="20dp"
+    android:paddingBottom="20dp" -->
+    <LinearLayout
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingRight="20dp"
+            >
+
+            <Button
+
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/lastSong"
+                android:background="@drawable/circle_btn"
+                android:text="Prev"
+                />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent">
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/pauseOrStart"
+                android:background="@drawable/circle_btn"
+                android:text="Play"
+
+                />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingLeft="20dp"
+            >
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/nextSong"
+                android:background="@drawable/circle_btn"
+                android:text="Next"
+                />
+        </LinearLayout>
+
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="20dp">
+
+
+    </LinearLayout>
+
+
+</LinearLayout>
