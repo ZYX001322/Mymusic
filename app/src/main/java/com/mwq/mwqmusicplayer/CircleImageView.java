@@ -18,6 +18,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Handler;
 import android.support.annotation.ColorInt;
 import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
@@ -63,11 +64,23 @@ public class CircleImageView extends ImageView {
     private boolean mBorderOverlay;
     private boolean mDisableCircularTransformation;
 
+    int degrees = 0;
+
     public CircleImageView(Context context) {
         super(context);
 
         init();
     }
+    Handler hander = new Handler();
+    Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            mShaderMatrix.postRotate(degrees++,mDrawableRadius/2,mDrawableRadius/2);
+            invalidate();
+            hander.postDelayed(runnable,50);
+
+        }
+    };
 
     public CircleImageView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -96,6 +109,7 @@ public class CircleImageView extends ImageView {
             setup();
             mSetupPending = false;
         }
+
     }
 
     @Override

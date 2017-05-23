@@ -2,6 +2,8 @@ package com.mwq.mwqmusicplayer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.os.Bundle;
 import android.os.IBinder;
@@ -10,10 +12,12 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,6 +30,10 @@ public class MainActivity extends Activity {
     private List<Music> musics;
     private int musicFlag = 0;
     MusicService musicService;
+    private  TextView totalTimeText;
+    int totalTime = 0;
+    private SeekBar seekBar;
+    ServiceConnection serviceConnection;
 
 
     @Override
@@ -38,13 +46,18 @@ public class MainActivity extends Activity {
         prevBtn = (Button) findViewById(R.id.lastSong);
         pauseOrPlayBtn = (Button) findViewById(R.id.pauseOrStart);
         nextBtn = (Button) findViewById(R.id.nextSong);
+        totalTimeText = (TextView) findViewById(R.id.totalTime);
+        seekBar = (SeekBar) findViewById(R.id.seekBar);
+        bindMusicService();
         //当前音乐
         musicFlag = 0;
-
 
         pauseOrPlayBtn.setOnClickListener(pauseOrPlay);
         nextBtn.setOnClickListener(nextSong);
         prevBtn.setOnClickListener(lastSong);
+        /*pauseOrPlayBtn.performClick();
+        sleepSomeTime(500);
+        pauseOrPlayBtn.performClick();*/
 
         /*nextBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -70,6 +83,16 @@ public class MainActivity extends Activity {
             }
         });*/
     }
+    private void sleepSomeTime(int time){
+        Timer timer = new Timer();
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+
+            }
+        };
+        timer.schedule(task,time);
+    }
 
     private Button.OnClickListener nextSong = new Button.OnClickListener() {
         @Override
@@ -80,6 +103,9 @@ public class MainActivity extends Activity {
                 title.setText(getMusicTitle(musics.get(musicFlag%3)));
                 imageMain.setImageResource(musics.get(musicFlag%3).getImage());
                 pauseOrPlayBtn.setText("PLAY");
+                totalTimeText.setText(getMinuteAndSeccond(musicService.getTotalTime()));
+                Log.i("信息",String.valueOf(musicService.getTotalTime()));
+
                 Toast.makeText(MainActivity.this,"下一首",Toast.LENGTH_SHORT);
             }
         }
@@ -94,6 +120,7 @@ public class MainActivity extends Activity {
                 title.setText(getMusicTitle(musics.get(musicFlag%3)));
                 imageMain.setImageResource(musics.get(musicFlag%3).getImage());
                 pauseOrPlayBtn.setText("PLAY");
+                //totalTimeText.setText(totalTime);
                 Toast.makeText(MainActivity.this,"上一首",Toast.LENGTH_SHORT);
             }
         }
@@ -122,9 +149,25 @@ public class MainActivity extends Activity {
             }
         }
     };
+    private String getMinuteAndSeccond(int time){
+        String minutes = String.valueOf((time/60000));
+        if(minutes.equals("0")){
+            minutes = "00";
+        } else if (minutes.length()==1) {
+            minutes = "0" + minutes;
+        }
+        String secconds = String.valueOf((time%60000)/1000);
+        if(secconds.length()==1){
+            secconds = "0"+secconds;
+        }
+        else if (secconds.length()==0){
+            secconds = "00";
+        }
+        return minutes + ":" + secconds;
+    };
 
-
-    ServiceConnection serviceConnection = new ServiceConnection() {
+    private void bindMusicService(){
+     serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceDisconnected(ComponentName name) {
             musicService = null;
@@ -132,9 +175,11 @@ public class MainActivity extends Activity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             musicService = ((MusicService.ServiceBinder)service).getService();
+            totalTime = musicService.getTotalTime();
+            totalTimeText.setText(getMinuteAndSeccond(musicService.getTotalTime()));
 
         }
-    };
+    };}
 
 
 

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_welcome"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.mwq.mwqmusicplayer.WelcomeActivity"
+    android:orientation="vertical"
+    android:weightSum="1">
+
+    <TextView
+        android:paddingTop="30dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="音乐播放器"
+        android:textSize="50sp"/>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="310dp"
+        android:src="@drawable/cover"
+        android:layout_weight="0.29" />
+    <TextView
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="35sp"
+        android:text="静享好时光"
+        />
+
+</LinearLayout>

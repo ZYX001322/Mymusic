@@ -8,6 +8,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -53,6 +54,12 @@ public class MusicService extends Service {
 		}
 
 	}
+	public int  getTotalTime(){
+		return mp.getDuration();
+	}
+
+	public int getCurrentPositon(){return mp.getCurrentPosition();}
+
 	public void onDestroy() {
 		super.onDestroy();
 		mp.stop();
@@ -98,7 +105,9 @@ public class MusicService extends Service {
 	@Override
 	public IBinder onBind(Intent intent) {
 		musicResid = intent.getIntExtra("musicId",R.raw.music2);
+		Log.i("接受参数",String.valueOf(musicResid));
 		Toast.makeText(MusicService.this,musicResid,Toast.LENGTH_LONG);
+
 
 		return myBinder;
 	}
