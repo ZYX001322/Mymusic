@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
     private Button prevBtn;
@@ -22,67 +23,127 @@ public class MainActivity extends Activity {
     private Button nextBtn;
     private TextView title;
     private ImageView imageMain;
-    ServiceConnection serviceConnection;
+    private List<Music> musics;
+    private int musicFlag = 0;
     MusicService musicService;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final List<Music> musics = createMusic();
+        musics = createMusic();
         title = (TextView) findViewById(R.id.musicText);
         imageMain = (ImageView) findViewById(R.id.imageMain);
-        prevBtn = (Button) findViewById(R.id.pauseOrStart);
+        prevBtn = (Button) findViewById(R.id.lastSong);
         pauseOrPlayBtn = (Button) findViewById(R.id.pauseOrStart);
         nextBtn = (Button) findViewById(R.id.nextSong);
         //当前音乐
-        final int musicFlag = 0;
-        serviceConnection = new ServiceConnection() {
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
-                musicService = null;
-            }
-            @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
-                musicService = ((MusicService.ServiceBinder)service).getService();
-
-            }
-        };
+        musicFlag = 0;
 
 
+        pauseOrPlayBtn.setOnClickListener(pauseOrPlay);
+        nextBtn.setOnClickListener(nextSong);
+        prevBtn.setOnClickListener(lastSong);
 
-        pauseOrPlayBtn.setOnClickListener(new View.OnClickListener() {
+        /*nextBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //if(!musicService.isPlaying()){
-                //startService(new Intent(MainActivity.this,MusicService.class));
-                //musicService.onCreate(musics.get(musicFlag).getMusicResid());
-                Intent intent = new Intent(MainActivity.this,MusicService.class);
-                intent.putExtra("musicId", musics.get(musicFlag).getMusicResid());
-                bindService(intent,
-                        serviceConnection, Context.BIND_AUTO_CREATE);
-                /*startService(intent);*/
-
-
-                //musicService.onCreate(musics.get(0).getMusicResid());
-                pauseOrPlayBtn.setText("Stop");
-				/*}
-				else {
-					musicService.pauseMusic();
-					pauseOrPlayBtn.setText("Play");
-				}*/
+                if(musicService!=null){
+                    musicService.nextSong();
+                    title.setText(getMusicTitle(musics.get((musicFlag+1)%3)));
+                    imageMain.setImageResource(musics.get((musicFlag+1)%3).getImage());
+                    Toast.makeText(MainActivity.this,"下一首",Toast.LENGTH_SHORT);
+                }
             }
         });
 
-
-
+        prevBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(musicService!=null){
+                    musicService.prevSong();
+                    title.setText(getMusicTitle(musics.get((musicFlag+2)%3)));
+                    imageMain.setImageResource(musics.get((musicFlag+2)%3).getImage());
+                    Toast.makeText(MainActivity.this,"上一首",Toast.LENGTH_SHORT);
+                }
+            }
+        });*/
     }
 
+    private Button.OnClickListener nextSong = new Button.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if(musicService!=null){
+                musicService.nextSong();
+                musicFlag +=1;
+                title.setText(getMusicTitle(musics.get(musicFlag%3)));
+                imageMain.setImageResource(musics.get(musicFlag%3).getImage());
+                pauseOrPlayBtn.setText("PLAY");
+                Toast.makeText(MainActivity.this,"下一首",Toast.LENGTH_SHORT);
+            }
+        }
+    };
 
-    private String getMusic(Music music){
-        String title = music.getSongName()+"-"+music.getArtist()+"   ";
+    private  Button.OnClickListener lastSong = new Button.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if(musicService!=null){
+                musicService.prevSong();
+                musicFlag +=2;
+                title.setText(getMusicTitle(musics.get(musicFlag%3)));
+                imageMain.setImageResource(musics.get(musicFlag%3).getImage());
+                pauseOrPlayBtn.setText("PLAY");
+                Toast.makeText(MainActivity.this,"上一首",Toast.LENGTH_SHORT);
+            }
+        }
+    };
+
+    private Button.OnClickListener pauseOrPlay = new Button.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if(musicService==null){
+            Intent intent = new Intent(MainActivity.this,MusicService.class);
+            intent.putExtra("musicId", musics.get(musicFlag).getMusicResid());
+            bindService(intent,
+                    serviceConnection, Context.BIND_AUTO_CREATE);
+            pauseOrPlayBtn.setText("PLAY");
+                Toast.makeText(MainActivity.this, "播放", Toast.LENGTH_SHORT).show();
+            }
+            else if (musicService.isPlaying()==true){
+                musicService.pauseMusic();
+                pauseOrPlayBtn.setText("STOP");
+                Toast.makeText(MainActivity.this, "暂停", Toast.LENGTH_SHORT).show();
+            }
+            else if(musicService.isPlaying()==false){
+                musicService.startMusic();
+                pauseOrPlayBtn.setText("PLAY");
+                Toast.makeText(MainActivity.this, "播放", Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
+
+
+    ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            musicService = null;
+        }
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            musicService = ((MusicService.ServiceBinder)service).getService();
+
+        }
+    };
+
+
+
+
+
+    private String getMusicTitle(Music music){
+        String title = music.getSongName()+"-"+music.getArtist()+"               ";
         String result ="";
-        for(int i=0;i<6;i++){
+        for(int i=0;i<4;i++){
             result = result + title;
         }
         return result;
