@@ -15,6 +15,8 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MusicService extends Service {
 	private MediaPlayer mp;
@@ -69,9 +71,9 @@ public class MusicService extends Service {
 	public void onCreate() {
 		super.onCreate();
         musics = createMusic();
-		mp = MediaPlayer.create(this, musics.get(musicFlag).getMusicResid());
+		/*mp = MediaPlayer.create(this, musics.get(musicFlag).getMusicResid());
 		mp.start();
-		mp.pause();
+		mp.pause();*/
 	}
 
     public void nextSong(){
@@ -108,6 +110,23 @@ public class MusicService extends Service {
 		musicResid = intent.getIntExtra("musicId",R.raw.music2);
 		Log.i("接受参数",String.valueOf(musicResid));
 		Toast.makeText(MusicService.this,musicResid,Toast.LENGTH_LONG);
+		mp = MediaPlayer.create(this, musicResid);
+		mp.start();
+		mp.pause();
+
+		final Intent intentReturn = new Intent();
+		intentReturn.setAction("updateNowTime");
+		Timer timer = new Timer();
+		TimerTask timerTask = new TimerTask() {
+			@Override
+			public void run() {
+				intentReturn.putExtra("nowTime",getCurrentPositon());
+				intentReturn.putExtra("totalTime",getTotalTime());
+				sendBroadcast(intentReturn);
+			}
+
+		};
+		timer.schedule(timerTask,1000,1000);
 
 
 		return myBinder;

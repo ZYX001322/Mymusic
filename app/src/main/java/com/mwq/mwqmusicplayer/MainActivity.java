@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -43,11 +45,48 @@ public class MainActivity extends Activity {
     int totalTime = 0;
     private SeekBar musicSeekBar;
     ServiceConnection serviceConnection;
+    Handler updateSeekBarHandler;
+    UpdateUIBroadcastReceiver updateUIBroadcastReceiver;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
+
+
+    /*Handler updateMusicSeekBar = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            Log.i("进度条参数",String.valueOf(msg.arg1));
+            Log.i("进度条参数2",String.valueOf(msg.arg2));
+            nowTimeText.setText(getMinuteAndSeccond(msg.arg1));
+            musicSeekBar.setProgress(msg.arg2);
+            updateMusicSeekBar.post(updateThread);
+        }
+    };
+    Runnable updateThread = new Runnable() {
+        @Override
+        public void run() {
+            Message msg = null;
+            if(musicService!=null){
+                msg = updateMusicSeekBar.obtainMessage();
+                msg.arg1 = musicService.getCurrentPositon();
+                msg.arg2 = musicService.getCurrentPositon()/musicService.getTotalTime();
+                //nowTimeText.setText(getMinuteAndSeccond(musicService.getCurrentPositon()));
+                //musicSeekBar.setProgress(musicService.getCurrentPositon()/musicService.getTotalTime());
+            }
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            updateMusicSeekBar.sendMessage(msg);
+
+
+        }
+    };*/
 
 
     @Override
@@ -73,6 +112,26 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(MainActivity.this, MusicService.class);
         intent.putExtra("musicId",musics.get(musicFlag).getMusicResid());
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        updateSeekBarHandler = new Handler();
+
+        //动态注册广播
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("updateNowTime");
+        updateUIBroadcastReceiver = new UpdateUIBroadcastReceiver();
+        registerReceiver(updateUIBroadcastReceiver,intentFilter);
+
+        /*new Thread(){
+            @Override
+            public void run() {
+                    super.run();
+                nowTimeText.setText(getMinuteAndSeccond(musicSeekBar.getProgress()));
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();*/
        /* Handler handler =null;
                 handler= new Handler(){
             @Override
@@ -97,6 +156,53 @@ public class MainActivity extends Activity {
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+    }
+
+    private class UpdateUIBroadcastReceiver extends BroadcastReceiver{
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            nowTimeText.setText(getMinuteAndSeccond(intent.getIntExtra("nowTime",0)));
+        }
+    }
+
+    private void bindMusicService() {
+        serviceConnection = new ServiceConnection() {
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                musicService = null;
+            }
+
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                musicService = ((MusicService.ServiceBinder) service).getService();
+                totalTime = musicService.getTotalTime();
+                totalTimeText.setText(getMinuteAndSeccond(musicService.getTotalTime()));
+                musicSeekBar.setMax(musicService.getTotalTime());
+
+                new Thread() {
+                    @Override
+                    public void run() {
+                        super.run();
+                        while (true) {
+                            musicSeekBar.setProgress(musicService.getCurrentPositon());
+
+                            //nowTimeText.setText(getMinuteAndSeccond(musicService.getCurrentPositon()));
+                            try {
+                                Thread.sleep(500);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
+                }.start();
+                /*Handler updateSeekBarHandler = new Handler();
+                updateSeekBarHandler.post(updateThread);*/
+
+            }
+
+
+        };
     }
 
 
@@ -182,24 +288,9 @@ public class MainActivity extends Activity {
         return minutes + ":" + secconds;
     }
 
-    ;
 
-    private void bindMusicService() {
-        serviceConnection = new ServiceConnection() {
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
-                musicService = null;
-            }
 
-            @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
-                musicService = ((MusicService.ServiceBinder) service).getService();
-                totalTime = musicService.getTotalTime();
-                totalTimeText.setText(getMinuteAndSeccond(musicService.getTotalTime()));
 
-            }
-        };
-    }
 
 
     private String getMusicTitle(Music music) {
