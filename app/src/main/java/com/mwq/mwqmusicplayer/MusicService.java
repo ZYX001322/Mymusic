@@ -76,6 +76,12 @@ public class MusicService extends Service {
 		mp.pause();*/
 	}
 
+	public void changeSeekBar(int time){
+		mp.pause();
+		mp.seekTo(time);
+		mp.start();
+	}
+
     public void nextSong(){
         mp.stop();
         mp.release();
@@ -106,7 +112,7 @@ public class MusicService extends Service {
 	}
 
 	@Override
-	public IBinder onBind(Intent intent) {
+	public IBinder onBind(final Intent intent) {
 		musicResid = intent.getIntExtra("musicId",R.raw.music2);
 		Log.i("接受参数",String.valueOf(musicResid));
 		Toast.makeText(MusicService.this,musicResid,Toast.LENGTH_LONG);
@@ -122,11 +128,17 @@ public class MusicService extends Service {
 			public void run() {
 				intentReturn.putExtra("nowTime",getCurrentPositon());
 				intentReturn.putExtra("totalTime",getTotalTime());
+				if(mp.getDuration()-mp.getCurrentPosition()<1500){
+					intentReturn.putExtra("nextSongFlag",1);
+				}
+				else{
+					intentReturn.putExtra("nextSongFlag",0);
+				}
 				sendBroadcast(intentReturn);
 			}
 
 		};
-		timer.schedule(timerTask,1000,1000);
+		timer.schedule(timerTask,0,200);
 
 
 		return myBinder;

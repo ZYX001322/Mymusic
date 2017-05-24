@@ -39,7 +39,7 @@ public class MainActivity extends Activity {
     private ImageView imageMain;
     private List<Music> musics;
     private int musicFlag = 0;
-    MusicService musicService;
+    MusicService musicService = null;
     private TextView totalTimeText;
     private TextView nowTimeText;
     int totalTime = 0;
@@ -52,42 +52,6 @@ public class MainActivity extends Activity {
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
-
-
-    /*Handler updateMusicSeekBar = new Handler(){
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            Log.i("进度条参数",String.valueOf(msg.arg1));
-            Log.i("进度条参数2",String.valueOf(msg.arg2));
-            nowTimeText.setText(getMinuteAndSeccond(msg.arg1));
-            musicSeekBar.setProgress(msg.arg2);
-            updateMusicSeekBar.post(updateThread);
-        }
-    };
-    Runnable updateThread = new Runnable() {
-        @Override
-        public void run() {
-            Message msg = null;
-            if(musicService!=null){
-                msg = updateMusicSeekBar.obtainMessage();
-                msg.arg1 = musicService.getCurrentPositon();
-                msg.arg2 = musicService.getCurrentPositon()/musicService.getTotalTime();
-                //nowTimeText.setText(getMinuteAndSeccond(musicService.getCurrentPositon()));
-                //musicSeekBar.setProgress(musicService.getCurrentPositon()/musicService.getTotalTime());
-            }
-
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            updateMusicSeekBar.sendMessage(msg);
-
-
-        }
-    };*/
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,62 +70,64 @@ public class MainActivity extends Activity {
         //当前音乐
         musicFlag = 0;
 
-        pauseOrPlayBtn.setOnClickListener(pauseOrPlay);
-        nextBtn.setOnClickListener(nextSong);
-        prevBtn.setOnClickListener(lastSong);
+        //绑定服务
         Intent intent = new Intent(MainActivity.this, MusicService.class);
         intent.putExtra("musicId",musics.get(musicFlag).getMusicResid());
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
         updateSeekBarHandler = new Handler();
 
+
+        //设置按钮点击时间
+        pauseOrPlayBtn.setOnClickListener(pauseOrPlay);
+        nextBtn.setOnClickListener(nextSong);
+        prevBtn.setOnClickListener(lastSong);
+
+        musicSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(fromUser==true){
+                if(musicService!=null){
+                    musicService.changeSeekBar(progress);
+                    if(pauseOrPlayBtn.getText().equals("STOP")){
+                        musicService.pauseMusic();
+                    }
+                }}
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
         //动态注册广播
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("updateNowTime");
+        //接受广播,调用方法,设置当前音乐时间
         updateUIBroadcastReceiver = new UpdateUIBroadcastReceiver();
         registerReceiver(updateUIBroadcastReceiver,intentFilter);
-
-        /*new Thread(){
-            @Override
-            public void run() {
-                    super.run();
-                nowTimeText.setText(getMinuteAndSeccond(musicSeekBar.getProgress()));
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();*/
-       /* Handler handler =null;
-                handler= new Handler(){
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                Runnable runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        nowTimeText.setText(getMinuteAndSeccond(musicService.getTotalTime()));
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-
-                    }
-                };
-                handler.post(runnable);
-            }
-        };*/
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
+    private void initMusicSeekBar(){
+        musicSeekBar.setProgress(0);
+    }
+
     private class UpdateUIBroadcastReceiver extends BroadcastReceiver{
         @Override
         public void onReceive(Context context, Intent intent) {
             nowTimeText.setText(getMinuteAndSeccond(intent.getIntExtra("nowTime",0)));
+            if(intent.getIntExtra("nextSongFlag",0)==1){
+                nextBtn.performClick();
+            }
         }
     }
 
@@ -178,44 +144,19 @@ public class MainActivity extends Activity {
                 totalTime = musicService.getTotalTime();
                 totalTimeText.setText(getMinuteAndSeccond(musicService.getTotalTime()));
                 musicSeekBar.setMax(musicService.getTotalTime());
-
-                new Thread() {
+                Timer timer = new Timer();
+                TimerTask timerTask = new TimerTask() {
                     @Override
                     public void run() {
-                        super.run();
-                        while (true) {
-                            musicSeekBar.setProgress(musicService.getCurrentPositon());
-
-                            //nowTimeText.setText(getMinuteAndSeccond(musicService.getCurrentPositon()));
-                            try {
-                                Thread.sleep(500);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
+                        musicSeekBar.setProgress(musicService.getCurrentPositon());
                     }
-
-                }.start();
-                /*Handler updateSeekBarHandler = new Handler();
-                updateSeekBarHandler.post(updateThread);*/
+                };
+                timer.schedule(timerTask,500);
 
             }
 
 
         };
-    }
-
-
-
-    private void sleepSomeTime(int time) {
-        Timer timer = new Timer();
-        TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-
-            }
-        };
-        timer.schedule(task, time);
     }
 
     private Button.OnClickListener nextSong = new Button.OnClickListener() {
@@ -228,6 +169,7 @@ public class MainActivity extends Activity {
                 imageMain.setImageResource(musics.get(musicFlag % 3).getImage());
                 pauseOrPlayBtn.setText("PLAY");
                 totalTimeText.setText(getMinuteAndSeccond(musicService.getTotalTime()));
+                initMusicSeekBar();
                 Log.i("信息", String.valueOf(musicService.getTotalTime()));
 
                 Toast.makeText(MainActivity.this, "下一首", Toast.LENGTH_SHORT);
@@ -244,6 +186,7 @@ public class MainActivity extends Activity {
                 title.setText(getMusicTitle(musics.get(musicFlag % 3)));
                 imageMain.setImageResource(musics.get(musicFlag % 3).getImage());
                 pauseOrPlayBtn.setText("PLAY");
+                initMusicSeekBar();
                 //totalTimeText.setText(totalTime);
                 Toast.makeText(MainActivity.this, "上一首", Toast.LENGTH_SHORT);
             }
