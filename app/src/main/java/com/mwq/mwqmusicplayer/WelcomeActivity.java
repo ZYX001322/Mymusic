@@ -26,6 +26,6 @@ public class WelcomeActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         };
-        timer.schedule(timeTask,2500);
+        timer.schedule(timeTask,3500);
     }
 }

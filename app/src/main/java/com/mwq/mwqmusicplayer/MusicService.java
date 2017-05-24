@@ -71,6 +71,7 @@ public class MusicService extends Service {
         musics = createMusic();
 		mp = MediaPlayer.create(this, musics.get(musicFlag).getMusicResid());
 		mp.start();
+		mp.pause();
 	}
 
     public void nextSong(){

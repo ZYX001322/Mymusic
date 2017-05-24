@@ -5,13 +5,16 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -20,6 +23,11 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.common.api.GoogleApiClient;
 
 public class MainActivity extends Activity {
     private Button prevBtn;
@@ -30,10 +38,16 @@ public class MainActivity extends Activity {
     private List<Music> musics;
     private int musicFlag = 0;
     MusicService musicService;
-    private  TextView totalTimeText;
+    private TextView totalTimeText;
+    private TextView nowTimeText;
     int totalTime = 0;
-    private SeekBar seekBar;
+    private SeekBar musicSeekBar;
     ServiceConnection serviceConnection;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
 
     @Override
@@ -47,7 +61,8 @@ public class MainActivity extends Activity {
         pauseOrPlayBtn = (Button) findViewById(R.id.pauseOrStart);
         nextBtn = (Button) findViewById(R.id.nextSong);
         totalTimeText = (TextView) findViewById(R.id.totalTime);
-        seekBar = (SeekBar) findViewById(R.id.seekBar);
+        musicSeekBar = (SeekBar) findViewById(R.id.musicSeekBar);
+        nowTimeText = (TextView) findViewById(R.id.nowTime);
         bindMusicService();
         //当前音乐
         musicFlag = 0;
@@ -55,35 +70,38 @@ public class MainActivity extends Activity {
         pauseOrPlayBtn.setOnClickListener(pauseOrPlay);
         nextBtn.setOnClickListener(nextSong);
         prevBtn.setOnClickListener(lastSong);
-        /*pauseOrPlayBtn.performClick();
-        sleepSomeTime(500);
-        pauseOrPlayBtn.performClick();*/
-
-        /*nextBtn.setOnClickListener(new View.OnClickListener() {
+        Intent intent = new Intent(MainActivity.this, MusicService.class);
+        intent.putExtra("musicId",musics.get(musicFlag).getMusicResid());
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+       /* Handler handler =null;
+                handler= new Handler(){
             @Override
-            public void onClick(View v) {
-                if(musicService!=null){
-                    musicService.nextSong();
-                    title.setText(getMusicTitle(musics.get((musicFlag+1)%3)));
-                    imageMain.setImageResource(musics.get((musicFlag+1)%3).getImage());
-                    Toast.makeText(MainActivity.this,"下一首",Toast.LENGTH_SHORT);
-                }
-            }
-        });
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        nowTimeText.setText(getMinuteAndSeccond(musicService.getTotalTime()));
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
 
-        prevBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(musicService!=null){
-                    musicService.prevSong();
-                    title.setText(getMusicTitle(musics.get((musicFlag+2)%3)));
-                    imageMain.setImageResource(musics.get((musicFlag+2)%3).getImage());
-                    Toast.makeText(MainActivity.this,"上一首",Toast.LENGTH_SHORT);
-                }
+                    }
+                };
+                handler.post(runnable);
             }
-        });*/
+        };*/
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
-    private void sleepSomeTime(int time){
+
+
+
+    private void sleepSomeTime(int time) {
         Timer timer = new Timer();
         TimerTask task = new TimerTask() {
             @Override
@@ -91,37 +109,37 @@ public class MainActivity extends Activity {
 
             }
         };
-        timer.schedule(task,time);
+        timer.schedule(task, time);
     }
 
     private Button.OnClickListener nextSong = new Button.OnClickListener() {
         @Override
         public void onClick(View v) {
-            if(musicService!=null){
+            if (musicService != null) {
                 musicService.nextSong();
-                musicFlag +=1;
-                title.setText(getMusicTitle(musics.get(musicFlag%3)));
-                imageMain.setImageResource(musics.get(musicFlag%3).getImage());
+                musicFlag += 1;
+                title.setText(getMusicTitle(musics.get(musicFlag % 3)));
+                imageMain.setImageResource(musics.get(musicFlag % 3).getImage());
                 pauseOrPlayBtn.setText("PLAY");
                 totalTimeText.setText(getMinuteAndSeccond(musicService.getTotalTime()));
-                Log.i("信息",String.valueOf(musicService.getTotalTime()));
+                Log.i("信息", String.valueOf(musicService.getTotalTime()));
 
-                Toast.makeText(MainActivity.this,"下一首",Toast.LENGTH_SHORT);
+                Toast.makeText(MainActivity.this, "下一首", Toast.LENGTH_SHORT);
             }
         }
     };
 
-    private  Button.OnClickListener lastSong = new Button.OnClickListener() {
+    private Button.OnClickListener lastSong = new Button.OnClickListener() {
         @Override
         public void onClick(View v) {
-            if(musicService!=null){
+            if (musicService != null) {
                 musicService.prevSong();
-                musicFlag +=2;
-                title.setText(getMusicTitle(musics.get(musicFlag%3)));
-                imageMain.setImageResource(musics.get(musicFlag%3).getImage());
+                musicFlag += 2;
+                title.setText(getMusicTitle(musics.get(musicFlag % 3)));
+                imageMain.setImageResource(musics.get(musicFlag % 3).getImage());
                 pauseOrPlayBtn.setText("PLAY");
                 //totalTimeText.setText(totalTime);
-                Toast.makeText(MainActivity.this,"上一首",Toast.LENGTH_SHORT);
+                Toast.makeText(MainActivity.this, "上一首", Toast.LENGTH_SHORT);
             }
         }
     };
@@ -129,72 +147,71 @@ public class MainActivity extends Activity {
     private Button.OnClickListener pauseOrPlay = new Button.OnClickListener() {
         @Override
         public void onClick(View v) {
-            if(musicService==null){
-            Intent intent = new Intent(MainActivity.this,MusicService.class);
-            intent.putExtra("musicId", musics.get(musicFlag).getMusicResid());
-            bindService(intent,
-                    serviceConnection, Context.BIND_AUTO_CREATE);
-            pauseOrPlayBtn.setText("PLAY");
+            if (musicService == null) {
+                Intent intent = new Intent(MainActivity.this, MusicService.class);
+                intent.putExtra("musicId", musics.get(musicFlag).getMusicResid());
+                bindService(intent,
+                        serviceConnection, Context.BIND_AUTO_CREATE);
+                pauseOrPlayBtn.setText("PLAY");
                 Toast.makeText(MainActivity.this, "播放", Toast.LENGTH_SHORT).show();
-            }
-            else if (musicService.isPlaying()==true){
+            } else if (musicService.isPlaying() == true) {
                 musicService.pauseMusic();
                 pauseOrPlayBtn.setText("STOP");
                 Toast.makeText(MainActivity.this, "暂停", Toast.LENGTH_SHORT).show();
-            }
-            else if(musicService.isPlaying()==false){
+            } else if (musicService.isPlaying() == false) {
                 musicService.startMusic();
                 pauseOrPlayBtn.setText("PLAY");
                 Toast.makeText(MainActivity.this, "播放", Toast.LENGTH_SHORT).show();
             }
         }
     };
-    private String getMinuteAndSeccond(int time){
-        String minutes = String.valueOf((time/60000));
-        if(minutes.equals("0")){
+
+    private String getMinuteAndSeccond(int time) {
+        String minutes = String.valueOf((time / 60000));
+        if (minutes.equals("0")) {
             minutes = "00";
-        } else if (minutes.length()==1) {
+        } else if (minutes.length() == 1) {
             minutes = "0" + minutes;
         }
-        String secconds = String.valueOf((time%60000)/1000);
-        if(secconds.length()==1){
-            secconds = "0"+secconds;
-        }
-        else if (secconds.length()==0){
+        String secconds = String.valueOf((time % 60000) / 1000);
+        if (secconds.length() == 1) {
+            secconds = "0" + secconds;
+        } else if (secconds.length() == 0) {
             secconds = "00";
         }
         return minutes + ":" + secconds;
-    };
+    }
 
-    private void bindMusicService(){
-     serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            musicService = null;
-        }
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            musicService = ((MusicService.ServiceBinder)service).getService();
-            totalTime = musicService.getTotalTime();
-            totalTimeText.setText(getMinuteAndSeccond(musicService.getTotalTime()));
+    ;
 
-        }
-    };}
+    private void bindMusicService() {
+        serviceConnection = new ServiceConnection() {
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                musicService = null;
+            }
+
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                musicService = ((MusicService.ServiceBinder) service).getService();
+                totalTime = musicService.getTotalTime();
+                totalTimeText.setText(getMinuteAndSeccond(musicService.getTotalTime()));
+
+            }
+        };
+    }
 
 
-
-
-
-    private String getMusicTitle(Music music){
-        String title = music.getSongName()+"-"+music.getArtist()+"               ";
-        String result ="";
-        for(int i=0;i<4;i++){
+    private String getMusicTitle(Music music) {
+        String title = music.getSongName() + "-" + music.getArtist() + "               ";
+        String result = "";
+        for (int i = 0; i < 4; i++) {
             result = result + title;
         }
         return result;
     }
 
-    private List<Music> createMusic(){
+    private List<Music> createMusic() {
         List<Music> musics = new ArrayList<Music>();
         Music music = new Music();
         music.setMusicResid(R.raw.music1);
@@ -231,6 +248,42 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         unbindService(serviceConnection);
+    }
+
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    public Action getIndexApiAction() {
+        Thing object = new Thing.Builder()
+                .setName("Main Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        AppIndex.AppIndexApi.start(client, getIndexApiAction());
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        AppIndex.AppIndexApi.end(client, getIndexApiAction());
+        client.disconnect();
     }
 /*public class MainActivity extends Activity {
         private Button startServiceButton;
