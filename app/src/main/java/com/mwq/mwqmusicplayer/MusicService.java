@@ -84,14 +84,14 @@ public class MusicService extends Service {
 
     public void nextSong(){
         mp.stop();
-        mp.release();
+        mp.reset();
         musicFlag +=1;
         mp = MediaPlayer.create(this,musics.get(musicFlag%3).getMusicResid());
         mp.start();
     }
     public void prevSong(){
         mp.stop();
-        mp.release();
+		mp.reset();
         musicFlag += 2;
         mp = MediaPlayer.create(this,musics.get(musicFlag%3).getMusicResid());
         mp.start();
@@ -128,7 +128,7 @@ public class MusicService extends Service {
 			public void run() {
 				intentReturn.putExtra("nowTime",getCurrentPositon());
 				intentReturn.putExtra("totalTime",getTotalTime());
-				if(mp.getDuration()-mp.getCurrentPosition()<1500){
+				if(mp.getDuration()-mp.getCurrentPosition()<1000){
 					intentReturn.putExtra("nextSongFlag",1);
 				}
 				else{
@@ -136,9 +136,8 @@ public class MusicService extends Service {
 				}
 				sendBroadcast(intentReturn);
 			}
-
 		};
-		timer.schedule(timerTask,0,200);
+		timer.schedule(timerTask,100,200);
 
 
 		return myBinder;

@@ -90,17 +90,21 @@ public class MainActivity extends Activity {
                     musicService.changeSeekBar(progress);
                     if(pauseOrPlayBtn.getText().equals("STOP")){
                         musicService.pauseMusic();
+                    }else{
+                        musicService.startMusic();
                     }
                 }}
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
+                musicService.pauseMusic();
 
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
+                
 
             }
         });
@@ -125,6 +129,7 @@ public class MainActivity extends Activity {
         @Override
         public void onReceive(Context context, Intent intent) {
             nowTimeText.setText(getMinuteAndSeccond(intent.getIntExtra("nowTime",0)));
+            //musicSeekBar.setProgress(intent.getIntExtra("nowTime",0)/intent.getIntExtra("totalTime",999999999));
             if(intent.getIntExtra("nextSongFlag",0)==1){
                 nextBtn.performClick();
             }
@@ -151,7 +156,7 @@ public class MainActivity extends Activity {
                         musicSeekBar.setProgress(musicService.getCurrentPositon());
                     }
                 };
-                timer.schedule(timerTask,500);
+                timer.schedule(timerTask,1000,500);
 
             }
 
