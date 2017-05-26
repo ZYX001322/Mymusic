@@ -9,6 +9,7 @@ import java.util.TimerTask;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,10 +24,12 @@ import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,6 +38,8 @@ import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
+
+import static com.mwq.mwqmusicplayer.R.layout.support_simple_spinner_dropdown_item;
 
 public class MainActivity extends Activity {
     private Button prevBtn;
@@ -49,10 +54,12 @@ public class MainActivity extends Activity {
     private TextView nowTimeText;
     int totalTime = 0;
     private SeekBar musicSeekBar;
+    private ListView musicListView;
     ServiceConnection serviceConnection;
     Handler updateSeekBarHandler;
     UpdateUIBroadcastReceiver updateUIBroadcastReceiver;
     private DataBaseUtil musicDataBaseUtil;
+
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -72,17 +79,35 @@ public class MainActivity extends Activity {
         totalTimeText = (TextView) findViewById(R.id.totalTime);
         musicSeekBar = (SeekBar) findViewById(R.id.musicSeekBar);
         nowTimeText = (TextView) findViewById(R.id.nowTime);
+        musicListView = (ListView) findViewById(R.id.musicListView);
         bindMusicService();
         //当前音乐
         musicFlag = 0;
 
-        SQLiteDatabase musicDataBase = musicDataBaseUtil.getWritableDatabase();
+        SQLiteDatabase musicDataBase = new DataBaseUtil(this).getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put("resid",R.raw.music1);
         cv.put("name","山外小楼夜听雨");
         cv.put("artist","任然");
         cv.put("image",R.drawable.music1);
         musicDataBase.insert("music",null,cv);
+
+        List<Music> musicList = new ArrayList<Music>();
+        List<String> showMusicList = new ArrayList<>();
+        Cursor cursor = musicDataBase.query("music",null,null,null,null,null,null);
+        if(cursor.moveToFirst()){
+            do {
+                Music tempMusic = new Music();
+                tempMusic.setMusicResid(cursor.getInt(cursor.getColumnIndex("resid")));
+                tempMusic.setSongName(cursor.getString(cursor.getColumnIndex("name")));
+                tempMusic.setArtist(cursor.getString(cursor.getColumnIndex("artist")));
+                tempMusic.setImage(cursor.getInt(cursor.getColumnIndex("image")));
+                musicList.add(tempMusic);
+                showMusicList.add(tempMusic.getSongName()+"-"+tempMusic.getArtist()+" ");
+            }while (cursor.moveToNext());
+            cursor.close();
+        }
+
 
 
 
@@ -92,8 +117,13 @@ public class MainActivity extends Activity {
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
         updateSeekBarHandler = new Handler();
 
+        String[] data = new String[]{"山外小楼夜听雨-任然","小半-陈粒","雪-杜雯媞"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>
+                (MainActivity.this, R.layout.support_simple_spinner_dropdown_item,showMusicList);
+        musicListView.setAdapter(adapter);
 
-        //设置按钮点击时间
+
+        //设置按钮点击事件
         pauseOrPlayBtn.setOnClickListener(pauseOrPlay);
         nextBtn.setOnClickListener(nextSong);
         prevBtn.setOnClickListener(lastSong);
