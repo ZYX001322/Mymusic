@@ -20,6 +20,7 @@ public class DrawView extends View{
         super.onDraw(canvas);
         //创建画笔
         Paint paint =   new Paint();
+        paint.setStrokeWidth(3);
         paint.setAntiAlias(true);
         paint.setColor(Color.BLACK);
         paint.setStyle(Paint.Style.FILL);

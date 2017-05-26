@@ -1,12 +1,15 @@
 package com.mwq.mwqmusicplayer;
 
+import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.IntentFilter;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -72,6 +75,15 @@ public class MainActivity extends Activity {
         //当前音乐
         musicFlag = 0;
 
+        SQLiteDatabase musicDataBase = new DataBaseUtil(this).getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put("resid",R.raw.music1);
+        cv.put("name","山外小楼夜听雨");
+        cv.put("artist","任然");
+        cv.put("image",R.drawable.music1);
+        musicDataBase.insert("music",null,cv);
+
+
 
         //绑定服务
         Intent intent = new Intent(MainActivity.this, MusicService.class);
@@ -124,14 +136,14 @@ public class MainActivity extends Activity {
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
-    private void initDraw(){
+    /*private void initDraw(){
         LinearLayout main = (LinearLayout) findViewById(R.id.mainLinerLayout);
         ImageButton imageButton = (ImageButton) findViewById(R.id.nextSong);
         DrawView drawView = new DrawView(this);
         drawView.invalidate();
         imageButton.
         main.addView(drawView);
-    }
+    }*/
 
     private void initMusicSeekBar(){
         musicSeekBar.setProgress(0);
