@@ -3,8 +3,11 @@ package com.mwq.mwqmusicplayer;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.widget.Toast;
 
 import java.util.List;
+
+import static android.widget.Toast.LENGTH_SHORT;
 
 /**
  * Created by wqmei on 2017/5/26.
@@ -14,6 +17,8 @@ public class DataBaseUtil extends SQLiteOpenHelper{
     private static final String baseName = "musicData";
     private static final int version = 1;
     private static final String tableName = "music";
+    private Context context1;
+
 
 
     public void addMusic(SQLiteDatabase db, Music music){
@@ -60,12 +65,17 @@ public class DataBaseUtil extends SQLiteOpenHelper{
     }
 
 
+
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE IF NOT EXISTS "+tableName+" " +
+        db.execSQL("CREATE TABLE " +
+                //"IF NOT EXISTS " +
+                tableName+
                 "(id integer primary key autoincrement, resid id integer," +
                 "name varchar(50),artist varchar(20),image integer)");
+        Toast.makeText(context1,"成功创建数据库", LENGTH_SHORT).show();
     }
+
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {

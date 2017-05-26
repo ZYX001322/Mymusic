@@ -52,6 +52,7 @@ public class MainActivity extends Activity {
     ServiceConnection serviceConnection;
     Handler updateSeekBarHandler;
     UpdateUIBroadcastReceiver updateUIBroadcastReceiver;
+    private DataBaseUtil musicDataBaseUtil;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -75,7 +76,7 @@ public class MainActivity extends Activity {
         //当前音乐
         musicFlag = 0;
 
-        SQLiteDatabase musicDataBase = new DataBaseUtil(this).getWritableDatabase();
+        SQLiteDatabase musicDataBase = musicDataBaseUtil.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put("resid",R.raw.music1);
         cv.put("name","山外小楼夜听雨");
