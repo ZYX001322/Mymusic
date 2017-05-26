@@ -21,7 +21,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -69,6 +71,7 @@ public class MainActivity extends Activity {
         bindMusicService();
         //当前音乐
         musicFlag = 0;
+
 
         //绑定服务
         Intent intent = new Intent(MainActivity.this, MusicService.class);
@@ -119,6 +122,15 @@ public class MainActivity extends Activity {
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+    }
+
+    private void initDraw(){
+        LinearLayout main = (LinearLayout) findViewById(R.id.mainLinerLayout);
+        ImageButton imageButton = (ImageButton) findViewById(R.id.nextSong);
+        DrawView drawView = new DrawView(this);
+        drawView.invalidate();
+        imageButton.
+        main.addView(drawView);
     }
 
     private void initMusicSeekBar(){
