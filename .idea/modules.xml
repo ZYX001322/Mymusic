@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/MwqMusicPlayer.iml" filepath="$PROJECT_DIR$/MwqMusicPlayer.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Mymusic.iml" filepath="$PROJECT_DIR$/Mymusic.iml" />
     </modules>
   </component>
 </project>
